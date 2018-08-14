@@ -7,7 +7,7 @@ if [ -z $script_root ]; then
 fi
 
 if [ -z $repo_root ]; then
-  repo_root=https://raw.githubusercontent.com/mao172/cc-installer
+  repo_root=https://raw.githubusercontent.com/mao172/gb-installer
   branch_nm=master
 fi
 

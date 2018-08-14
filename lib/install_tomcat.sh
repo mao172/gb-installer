@@ -46,6 +46,7 @@ tomcat_setup() {
 
 # Use JAVA_OPTS to set java.library.path for libtcnative.so
 #JAVA_OPTS="-Djava.library.path=/usr/lib"
+JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
 
 _EOF_
 
@@ -97,5 +98,6 @@ tomcat_setup $VERSION
 cd /opt/tomcat/lib
 curl -OL https://jdbc.postgresql.org/download/postgresql-42.2.4.jar
 
+systemctl enable tomcat
 systemctl start tomcat
 
