@@ -35,6 +35,22 @@ tomcat_setup() {
 
   tomcat_install 8.5.32
   
+  if ! [ -e /etc/sysconfig/tomcat ]; then
+    
+    cat << '_EOF_' > /etc/sysconfig/tomcat
+# Where your java installation lives
+#JAVA_HOME="/usr/lib/jvm/java"
+
+# You can pass some parameters to java here if you wish to
+#JAVA_OPTS="-Xminf0.1 -Xmaxf0.3"
+
+# Use JAVA_OPTS to set java.library.path for libtcnative.so
+#JAVA_OPTS="-Djava.library.path=/usr/lib"
+
+_EOF_
+
+  fi
+  
   if ! [ -e /etc/systemd/system/tomcat.service ]; then
 
     cat << '_EOF_' > /etc/systemd/system/tomcat.service
@@ -44,14 +60,13 @@ After=syslog.target network.target
 
 [Service]
 User=tomcat
-Group=tomcat
-Type=oneshot
+Type=simple
 PIDFile=/opt/tomcat/tomcat.pid
 RemainAfterExit=yes
 
 ExecStart=/opt/tomcat/bin/startup.sh
 ExecStop=/opt/tomcat/bin/shutdown.sh
-ExecReStart=/opt/tomcat/bin/shutdown.sh;/opt/tomcat/bin/startup.sh
+EnvironmentFile=/etc/sysconfig/tomcat
 
 [Install]
 WantedBy=multi-user.target
@@ -78,6 +93,9 @@ do
 done
 
 tomcat_setup $VERSION
+
+cd /opt/tomcat/lib
+curl -OL https://jdbc.postgresql.org/download/postgresql-42.2.4.jar
 
 systemctl start tomcat
 

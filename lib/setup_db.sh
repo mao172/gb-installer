@@ -2,11 +2,11 @@
 
 set -x
 
-if [ -x $script_root ]; then
+if [ -z $script_root ]; then
   script_root=$(cd $(dirname $0)/../ && pwd)
 fi
 
-if [ -x $repo_root ]; then
+if [ -z $repo_root ]; then
   repo_root=https://raw.githubusercontent.com/mao172/cc-installer
   branch_nm=master
 fi
@@ -40,6 +40,9 @@ create_db_user() {
   send -- \"${db_pswd}\n\"
   expect \"]$ \"
   "
+  
+  sudo -u postgres LANG=C psql -c "grant ${db_user} to postgres;"
+  
 }
 
 VERSION=9.4
