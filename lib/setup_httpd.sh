@@ -1,3 +1,6 @@
+#! /bin/sh
+
+set -x
 
 yum install -y httpd
 

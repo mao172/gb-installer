@@ -67,14 +67,14 @@ while getopts b: OPT
 do
   case $OPT in
     "b" )
-      branch="$OPTARG"
+      branch_nm="$OPTARG"
       ;;
   esac
 done
 
 export script_root
 export repo_root
-export branch
+export branch_nm
 
 db_setup $pg_version $db_user $db_pswd
 
