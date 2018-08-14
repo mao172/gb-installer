@@ -16,9 +16,9 @@ $ curl -L https://raw.githubusercontent.com/mao172/gb-installer/master/install.s
 
 For example:
 ```
-$ curl -L https://raw.githubusercontent.com/mao172/gb-installer/master/install.sh | bash -s -- -p 9.4 
+$ curl -L https://raw.githubusercontent.com/mao172/gb-installer/master/install.sh | bash -s -- -p 10
 ```
-will be install the GitBucket with PostgreSQL version 9.4 
+will both install the GitBucket with PostgreSQL version 10 
 
 WARN: Support to only when Lang=ja_JP.UTF-8.
 
