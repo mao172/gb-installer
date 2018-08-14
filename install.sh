@@ -63,7 +63,18 @@ db_url="jdbc:postgresql://localhost/gitbucket"
 db_user="gitbucket"
 db_pswd="password"
 
+while getopts b: OPT
+do
+  case $OPT in
+    "b" )
+      branch="$OPTARG"
+      ;;
+  esac
+done
+
 export script_root
+export repo_root
+export branch
 
 db_setup $pg_version $db_user $db_pswd
 
