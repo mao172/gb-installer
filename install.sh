@@ -63,11 +63,14 @@ db_url="jdbc:postgresql://localhost/gitbucket"
 db_user="gitbucket"
 db_pswd="password"
 
-while getopts b: OPT
+while getopts b:p: OPT
 do
   case $OPT in
     "b" )
       branch_nm="$OPTARG"
+      ;;
+    "p" )
+      pg_version="$OPTARG"
       ;;
   esac
 done

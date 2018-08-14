@@ -13,3 +13,12 @@ Run the command that appears:
 ```
 $ curl -L https://raw.githubusercontent.com/mao172/gb-installer/master/install.sh | bash
 ```
+
+For example:
+```
+$ curl -L https://raw.githubusercontent.com/mao172/gb-installer/master/install.sh | bash -s -- -p 9.4 
+```
+will be install the GitBucket with PostgreSQL version 9.4 
+
+WARN: Support to only when Lang=ja_JP.UTF-8.
+
