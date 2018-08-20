@@ -63,6 +63,8 @@ gitbucket_setup() {
   echo "}" >> /opt/gitbucket/database.conf
 
   chown tomcat:tomcat /opt/gitbucket/database.conf
+  
+  echo gitbucket.maxFileSize=134217728 >> /opt/tomcat/conf/catalina.properties
 }
 
 gitbucket_plugins() {
