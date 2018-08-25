@@ -6,7 +6,7 @@ Currently supported:
 
 - CentOS 7 (7.5.1804 or later )
 - PostgreSQL (9.4, 9.5, 9.6, 10 or later)
-- Apache-Tomcat (8.5.32, 8.5.33)
+- Apache-Tomcat (8.5.32, 8.5.33 or later)
 
 Run the command that appears:
 
