@@ -64,5 +64,12 @@ do
   esac
 done
 
-postgresql_install $VERSION
+if ! cat /etc/passwd | grep postgres; then
+  postgresql_install $VERSION
+fi
+
+if ! which psql > /dev/null 2>&1; then
+  postgresql_install $VERSION
+fi
+
 create_db_user $DBUSR $DBPSWD

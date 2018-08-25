@@ -7,6 +7,18 @@ script_root=$(cd $(dirname $0) && pwd)
 repo_root=https://raw.githubusercontent.com/mao172/gb-installer
 branch_nm=master
 
+set_locale() {
+
+  local def_lang=$1
+  
+  if [ -f ${script_root}/lib/set_locale.sh ]; then
+    cat ${script_root}/lib/set_locale.sh | bash -s -- -l ${def_lang}
+  else
+    curl -L ${repo_root}/${branch_nm}/lib/set_locale.sh | bash -s -- -l ${def_lang}
+  fi
+
+}
+
 db_setup() {
   local version=10
   local db_user=dbadmin
@@ -59,11 +71,13 @@ httpd_setup () {
 }
 
 pg_version=10
+tomcat_version=8.5.33
+
 db_url="jdbc:postgresql://localhost/gitbucket"
 db_user="gitbucket"
 db_pswd="password"
 
-while getopts b:p: OPT
+while getopts b:p:t: OPT
 do
   case $OPT in
     "b" )
@@ -72,6 +86,9 @@ do
     "p" )
       pg_version="$OPTARG"
       ;;
+    "t" )
+      tomcat_version="$OPTARG"
+      ;;
   esac
 done
 
@@ -79,11 +96,15 @@ export script_root
 export repo_root
 export branch_nm
 
+set_locale ja_JP.UTF-8
+
+timedatectl set-timezone Asia/Tokyo
+
 db_setup $pg_version $db_user $db_pswd
 
-tomcat_install 8.5.32
+tomcat_install ${tomcat_version}
 
-gitbucket_install 4.27.0 $db_url $db_user $db_pswd
+gitbucket_install 4.27.0 $db_url $db_user $db_pswd ja_JP.UTF-8
 
 httpd_setup
 

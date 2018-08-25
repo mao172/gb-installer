@@ -2,38 +2,74 @@
 
 set -x
 
+tarball_base_uri=http://archive.apache.org/dist/tomcat
+
 java_install() {
 
   yum install -y java-1.8.0-openjdk-devel
 }
 
 create_tomcat_user() {
-  useradd -s /sbin/nologin tomcat
+
+  if ! cat /etc/passwd | grep tomcat; then
+    useradd -s /sbin/nologin tomcat
+  fi
 }
 
 tomcat_install() {
 
-  local version=8.5.32
-  version=$1
+  local version=$1
+  local file_name=apache-tomcat-${version}.tar.gz
 
   create_tomcat_user
 
-  java_install
+  if ! which java > /dev/null 2>&1; then
+    java_install
+  fi
 
   cd ${opt_dir}
 
-  #http://ftp.yz.yamagata-u.ac.jp/pub/network/apache/tomcat/tomcat-8/v8.5.32/bin/apache-tomcat-8.5.32.tar.gz
-  curl -OL http://ftp.yz.yamagata-u.ac.jp/pub/network/apache/tomcat/tomcat-8/v${version}/bin/apache-tomcat-${version}.tar.gz
+  if ! which wget > /dev/null 2>&1; then
+    yum install -y wget
+  fi
+  
+  if [ -f ${file_name} ]; then
+    if [ -f ${file_name}.sha512 ]; then
+      rm ${file_name}.sha512
+    fi
+    
+    wget -P ${opt_dir} ${tarball_base_uri}/tomcat-${version%%.*}/v${version}/bin/${file_name}.sha512
+    
+    sha512sum -c ${file_name}.sha512
+    if ! [ $? -eq 0 ]; then
+      rm ${file_name}
+    fi
+  fi
 
-  tar -xzvf ./apache-tomcat-${version}.tar.gz
+  if ! [ -f ${file_name} ]; then
+    #curl -OL ${tarball_base_uri}/tomcat-${version%.*}/v${version}/bin/${file_name}
+    wget -P ${opt_dir} ${tarball_base_uri}/tomcat-${version%%.*}/v${version}/bin/${file_name}
+  fi
+  
+  tar -xzvf ./${file_name}
   chown -R tomcat:tomcat ./apache-tomcat-${version}
 
-  ln -s ${opt_dir}/apache-tomcat-${version} ${opt_dir}/tomcat
+  if [ -h tomcat ]; then
+    ln -nfs ${opt_dir}/apache-tomcat-${version} ${opt_dir}/tomcat
+  else
+    if [ -d tomcat ]; then
+      mv ./tomcat ./tomcat.old
+    fi
+    
+    ln -s ${opt_dir}/apache-tomcat-${version} ${opt_dir}/tomcat
+  fi
 }
 
 tomcat_setup() {
 
-  tomcat_install 8.5.32
+  local version=$1
+
+  tomcat_install ${version}
   
   if ! [ -e /etc/sysconfig/tomcat ]; then
     
@@ -92,6 +128,11 @@ do
       ;;
   esac
 done
+
+if systemctl list-units --type=service | grep tomcat; then
+  systemctl stop tomcat
+  systemctl disable tomcat
+fi
 
 tomcat_setup $VERSION
 

@@ -69,11 +69,11 @@ Vagrant.configure("2") do |config|
   # SHELL
   config.vm.provision "shell", inline: <<-SHELL
   
-    yum reinstall -y glibc-common
-    localectl set-locale LANG=ja_JP.UTF-8
-    source /etc/locale.conf
+#    yum reinstall -y glibc-common
+#    localectl set-locale LANG=ja_JP.UTF-8
+#    source /etc/locale.conf
     
-    timedatectl set-timezone Asia/Tokyo
+#    timedatectl set-timezone Asia/Tokyo
   
     sh -ex /vagrant_data/install.sh
   SHELL

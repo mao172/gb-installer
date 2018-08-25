@@ -2,6 +2,8 @@
 
 set -x
 
+war_base_uri=https://github.com/gitbucket/gitbucket/releases/download
+
 gitbucket_install() {
   local version=4.27.0
   version=$1
@@ -21,10 +23,28 @@ gitbucket_install() {
   if [ -d /usr/share/tomcat ]; then
     cd /usr/share/tomcat/webapps
   fi
+  
+  if [ -f gitbucket.war ]; then
+    if [ -f gitbucket.war.sha512 ]; then
+      rm gitbucket.war.sha512
+    fi
+    
+    curl -OL ${war_base_uri}/${version}/gitbucket.war.sha256
+    
+    sha256sum -c gitbucket.war.sha256
+    if ! [ $? -eq 0 ]; then
+      rm gitbucket.war
+    fi
+    
+    rm gitbucket.war.sha256
+  fi
 
-  #https://github.com/gitbucket/gitbucket/releases/download/4.27.0/gitbucket.war
-  #wget -P /opt/tomcat/webapps/ https://github.com/gitbucket/gitbucket/releases/download/${version}/gitbucket.war
-  curl -OL https://github.com/gitbucket/gitbucket/releases/download/${version}/gitbucket.war
+  if ! [ -f gitbucket.war ]; then
+
+    #https://github.com/gitbucket/gitbucket/releases/download/4.27.0/gitbucket.war
+    #wget -P /opt/tomcat/webapps/ https://github.com/gitbucket/gitbucket/releases/download/${version}/gitbucket.war
+    curl -OL ${war_base_uri}/${version}/gitbucket.war
+  fi
   
   if ! [ -d /opt/gitbucket ]; then
     mkdir /opt/gitbucket
@@ -40,11 +60,43 @@ _EOF_
 #  systemctl start tomcat
 }
 
+set_locale() {
+
+  local def_lang=$1
+
+  if [ -z $script_root ]; then
+    script_root=$(cd $(dirname $0)/../ && pwd)
+  fi
+
+  if [ -z $repo_root ]; then
+    repo_root=https://raw.githubusercontent.com/mao172/gb-installer
+    branch_nm=master
+  fi
+  
+  if [ -f ${script_root}/lib/set_locale.sh ]; then
+    cat ${script_root}/lib/set_locale.sh | bash -s -- -l ${def_lang}
+  else
+    curl -L ${repo_root}/${branch_nm}/lib/set_locale.sh | bash -s -- -l ${def_lang}
+  fi
+
+
+}
+
 gitbucket_setup() {
 
   local db_url=$1
   local db_user=$2
   local db_pswd=$3
+  local db_lang=$4
+  
+  local lang_tag=${db_lang%.*}
+  local lang_code=${db_lang#*.}
+  lang_code=${lang_code/-/}
+  
+  localectl list-locales | grep -i ${lang_tag} | grep -i ${lang_code,,}
+  if ! [ $? -eq 0 ]; then
+    set_locale ${db_lang}
+  fi
   
 #  expect -c "
 #  spawn sudo -u postgres LANG=C psql -U ${db_user} -W -c \\"create database gitbucket WITH template template0 encoding 'utf8' lc_collate 'ja_JP.UTF-8' lc_ctype 'ja_JP.UTF-8';\\"
@@ -53,7 +105,7 @@ gitbucket_setup() {
 #  expect \"]$ \"
 #  "
 
-  sudo -u postgres psql -c "create database gitbucket WITH template template0 encoding 'utf8' lc_collate 'ja_JP.UTF-8' lc_ctype 'ja_JP.UTF-8';"
+  sudo -u postgres psql -c "create database gitbucket WITH template template0 encoding '${lang_code,,}' lc_collate '${db_lang}' lc_ctype '${db_lang}';"
 
   touch /opt/gitbucket/database.conf
   echo "db {" >> /opt/gitbucket/database.conf
@@ -94,8 +146,9 @@ VERSION=4.27.0
 DBURL='jdbc:h2:${DatabaseHome};MVCC=true'
 DBUSER=sa
 DBPSWD=sa
+DBLANG=ja_JP.UTF-8
 
-while getopts v:d:u:p: OPT
+while getopts v:d:u:p:l: OPT
 do
   case $OPT in
     "v" )
@@ -110,11 +163,13 @@ do
     "p" )
       DBPSWD="$OPTARG"
       ;;
+    "l" )
+      DBLANG="$OPTARG"
   esac
 done
 
 gitbucket_install $VERSION
-gitbucket_setup $DBURL $DBUSER $DBPSWD
+gitbucket_setup $DBURL $DBUSER $DBPSWD $DBLANG
 gitbucket_plugins
 
 systemctl start tomcat
