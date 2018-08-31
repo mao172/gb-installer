@@ -105,7 +105,8 @@ gitbucket_setup() {
 #  expect \"]$ \"
 #  "
 
-  sudo -u postgres psql -c "create database gitbucket WITH template template0 encoding '${lang_code,,}' lc_collate '${db_lang}' lc_ctype '${db_lang}';"
+#  sudo -u postgres psql -c "create database gitbucket WITH template template0 encoding '${lang_code,,}' lc_collate '${db_lang}' lc_ctype '${db_lang}';"
+  sudo -u postgres sh -c 'createdb --encoding=UTF-8 --owner=gitbucket gitbucket'
 
   touch /opt/gitbucket/database.conf
   echo "db {" >> /opt/gitbucket/database.conf
